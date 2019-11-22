@@ -2787,3 +2787,19 @@ func HumanError(err error) error {
 	}
 	return err
 }
+
+//=============================================================================
+
+type HiddenChainDataMissingError struct {
+	note string
+}
+
+func (e HiddenChainDataMissingError) Error() string {
+	return fmt.Sprintf("hidden chain data missing error: %s", e.note)
+}
+
+func NewHiddenChainDataMissingError(format string, args ...interface{}) HiddenChainDataMissingError {
+	return HiddenChainDataMissingError{fmt.Sprintf(format, args...)}
+}
+
+var _ error = HiddenChainDataMissingError{}
