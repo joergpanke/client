@@ -62,6 +62,9 @@ export default () => {
 
   Sb.storiesOf('Files/Banners', module)
     .addDecorator(provider)
+    .add('Trying to connect', () => (
+      <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.TryingToConnect})} />
+    ))
     .add('Out of space', () => (
       <MainBanner {...Sb.propOverridesForStory({bannerType: Types.MainBannerType.OutOfSpace})} />
     ))
