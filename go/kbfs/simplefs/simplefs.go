@@ -3159,6 +3159,7 @@ func (k *SimpleFS) SimpleFSDoIndex(
 	}
 
 	if k.indexer == nil {
+		k.log.CDebugf(ctx, "MAKING NEW INDEXER")
 		k.indexer, err = search.NewIndexer(context.Background(), k.config)
 		if err != nil {
 			panic(err)

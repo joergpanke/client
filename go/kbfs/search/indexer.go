@@ -6,12 +6,14 @@ package search
 
 import (
 	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/index/store"
+	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -64,23 +66,30 @@ func NewIndexer(ctx context.Context, config libkbfs.Config) (*Indexer, error) {
 		return nil, err
 	}
 
-	var index bleve.Index
-	bleveConfig := map[string]interface{}{
-		"openFile": func(p string, f int, m os.FileMode) (io.ReadWriteCloser, error) { return fs.OpenFile(p, f, m) },
-		"mkdir":    fs.MkdirAll,
+	// Register the storage type with Bleve.
+	kvstoreConstructor := func(
+		_ store.MergeOperator, _ map[string]interface{}) (
+		s store.KVStore, err error) {
+		config.MakeLogger("").CDebugf(nil, "MAKING NEW STORAGE")
+		defer func() { config.MakeLogger("").CDebugf(nil, "MAKING NEW STORAGE %+v", err); time.Sleep(1 * time.Second) }()
+		return newBleveLevelDBStore(fs, false)
 	}
-	p := "kbindex"
+	kvstoreName := "kbfs"
+	registry.RegisterKVStore(kvstoreName, kvstoreConstructor)
+
+	var index bleve.Index
+	p := filepath.Join(config.StorageRoot(), indexStorageDir, bleveIndexDir)
 	_, err = fs.Stat(p)
 	switch {
 	case os.IsNotExist(errors.Cause(err)):
 		mapping := bleve.NewIndexMapping()
 		index, err = bleve.NewUsing(
-			p, mapping, "scorch", "kbindex", bleveConfig)
+			p, mapping, "upside_down", kvstoreName, nil)
 		if err != nil {
 			return nil, err
 		}
 	case err == nil:
-		index, err = bleve.OpenUsing(p, bleveConfig)
+		index, err = bleve.OpenUsing(p, nil)
 		if err != nil {
 			return nil, err
 		}

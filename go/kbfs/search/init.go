@@ -14,6 +14,7 @@ import (
 
 const (
 	indexStorageDir    = "kbfs_index"
+	bleveIndexDir      = "bleve"
 	bserverStorageDir  = "bserver"
 	mdserverStorageDir = "mdserver"
 )

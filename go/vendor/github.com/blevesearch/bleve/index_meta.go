@@ -16,6 +16,7 @@ package bleve
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -65,7 +66,7 @@ func (i *indexMeta) Save(path string) (err error) {
 	err = os.MkdirAll(path, 0700)
 	if err != nil {
 		if os.IsExist(err) {
-			return ErrorIndexPathExists
+			return fmt.Errorf("Existing index path: %s", path) //ErrorIndexPathExists
 		}
 		return err
 	}
@@ -73,10 +74,11 @@ func (i *indexMeta) Save(path string) (err error) {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("MAKING INDEX METAFILE %s\n", indexMetaPath)
 	indexMetaFile, err := os.OpenFile(indexMetaPath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
 	if err != nil {
 		if os.IsExist(err) {
-			return ErrorIndexPathExists
+			return fmt.Errorf("Existing index meta path: %s", indexMetaPath) //ErrorIndexPathExists
 		}
 		return err
 	}

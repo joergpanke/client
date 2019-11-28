@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -65,7 +66,11 @@ var _ store.KVReader = (*bleveLevelDBReader)(nil)
 
 // Get implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) Get(key []byte) ([]byte, error) {
-	return bldbr.snap.Get(key, nil)
+	v, err := bldbr.snap.Get(key, nil)
+	if err == ldberrors.ErrNotFound {
+		return nil, nil
+	}
+	return v, err
 }
 
 // MultiGet implements the store.KVReader interface for bleveLevelDBReader.
